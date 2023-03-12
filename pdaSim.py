@@ -1,9 +1,7 @@
 import tkinter as tk
 from tkinter import scrolledtext, Label, Frame
 import re
-from automata.pda.npda import NPDA
-from automata.pda.stack import PDAStack
-from automata.pda.configuration import PDAConfiguration
+from automata.fa.dfa import DFA
 from automata.base.exceptions import RejectionException
 
 def norm(txt):
@@ -104,48 +102,23 @@ class AsciiTree:
         self.lastLevel = tuple(level)
         return content
 
-class MyNPDA(NPDA):
+class MyDFA(DFA):
     
-    def read_input_stepwise(self, input_str):
+    def read_input_stepwise(self, input_str, ignore_rejection=False):
         """
-        Check if the given string is accepted by this NPDA.
-        Yield the NPDA's current configurations at each step.
+        Check if the given string is accepted by this DFA.
+        Yield the current configuration of the DFA at each step.
         """
-        current_configurations = set()
-        initial_configuration = PDAConfiguration(
-            self.initial_state,
-            input_str,
-            PDAStack([self.initial_stack_symbol])
-        )
-        initial_configuration.cid = 0
-        initial_configuration.pcid = 0
-        current_configurations.add(initial_configuration)
+        current_state = self.initial_state
 
-        yield current_configurations
+        yield current_state
+        for input_symbol in input_str:
+            current_state = self._get_next_current_state(
+                current_state, input_symbol)
+            yield current_state
 
-        cid = 1
-        while current_configurations:
-            new_configurations = set()
-            for config in current_configurations:
-                if self._has_accepted(config):
-                    # One accepting configuration is enough.
-                    return
-                next_configurations = set()
-                if config.remaining_input or self._has_lambda_transition(config.state, config.stack.top()):
-                    next_configurations = self._get_next_configurations(config)
-                for next_conf in next_configurations:
-                    next_conf.cid = cid
-                    cid += 1
-                    next_conf.pcid = config.cid
-                new_configurations.update(
-                    next_configurations
-                )
-            current_configurations = new_configurations
-            yield current_configurations
-
-        raise RejectionException(
-            'the NPDA did not reach an accepting configuration'
-        )
+        if not ignore_rejection:
+            self._check_for_input_rejection(current_state)
 
 class Automaton:
     
@@ -172,8 +145,8 @@ class Automaton:
         txtI = txtAreaI.get("1.0", "end")
         definition = self.parser.parse(txtTrans, txtF)
         print(definition)
-        self.npda = MyNPDA(**definition)
-        self.steps = self.npda.read_input_stepwise(removeNLs(txtI))
+        self.dfa = MyDFA(**definition)
+        self.steps = self.dfa.read_input_stepwise(removeNLs(txtI))
         return
         
     def step(self, txtAreaT, txtAreaF, txtAreaI, text_area_C):
@@ -184,10 +157,10 @@ class Automaton:
         try:
             confs = next(self.steps)
             items = {}
-            for conf in confs:
-                if conf.pcid not in items:
-                    items[conf.pcid] = []
-                items[conf.pcid].append((conf.cid, ("S:" + conf.state, "V:" + conf.remaining_input, "Z:" + "".join(conf.stack))))
+            # for conf in confs:
+                # if conf.pcid not in items:
+                #     items[conf.pcid] = []
+                # items[conf.pcid].append((conf.cid, ("S:" + conf.state, "V:" + conf.remaining_input, "Z:" + "".join(conf.stack))))
             if len(items) > 0:
                 treePart = self.asciiTree.addLevel(items)
                 #text_area_C.delete('1.0', 'end')
@@ -213,34 +186,26 @@ class Parser:
         transitions = {}
         states = set()
         inputSymbols = set()
-        stackSymbols = set()
-        
+
         normedTrans = norm(txtTrans)
         
-        matches = re.finditer("d\(([a-z]\d*),(.?),([A-Z]\d*)\)=\(([a-z]\d*),(([A-Z]\d*)*)\)", normedTrans)
+        matches = re.finditer("d\(([a-z]\d*),([a-z]|\d|)\)=\(([a-z]\d*)\)", normedTrans)
         for match in matches:
             
             state = match.group(1)
             inputSymbol = match.group(2)
-            stackTop = match.group(3)
-            newState = match.group(4)
-            pushToStack = tuple(re.findall("[A-Z]\d*", match.group(5)))
-           
+            newState = match.group(3)
+
             states.add(state)
             inputSymbols.add(inputSymbol)
-            stackSymbols.add(stackTop)
-            stackSymbols.update(pushToStack)
-           
+
             if state not in transitions:
                 transitions[state] = {}
             if inputSymbol not in transitions[state]:
                 transitions[state][inputSymbol] = {}
-            if stackTop not in transitions[state][inputSymbol]:
-                transitions[state][inputSymbol][stackTop] = set()
-            transitions[state][inputSymbol][stackTop].add((newState, pushToStack))
+            transitions[state][inputSymbol] = newState
         
         inputSymbols.discard('')
-        stackSymbols.add('Z0')
         states.add('q0')
         
         normedF = norm(txtF)
@@ -253,12 +218,9 @@ class Parser:
         definition = {
             'states':states,
             'input_symbols':inputSymbols,
-            'stack_symbols':stackSymbols,
             'transitions':transitions,
             'initial_state':'q0',
-            'initial_stack_symbol':'Z0',
             'final_states':finalStates,
-            'acceptance_mode':'final_state'
         }
         return definition
   
@@ -274,7 +236,7 @@ if __name__=="__main__":
     
     # Creating tkinter main window
     win = tk.Tk()
-    win.title("PDA Sim")
+    win.title("DFA Sim")
 
     parser = Parser()
     automaton = Automaton(parser)
@@ -292,13 +254,11 @@ if __name__=="__main__":
     )
     text_area.grid(row = 1, column = 0, padx = 10)
     text_area.insert(tk.INSERT, "\n".join((
-        "M = (K, S, T, d, q0, Z0, F)\n",
+        "M = (K, S, d, q0, F)\n",
         "K je konečná množina stavov",
         "S je vstupná abeceda",
-        "T je zásobníková abeceda",
         "d je prechodová funkcia",
         "q0 je počiatočný stav",
-        "Z0 je počiatočný zásobníkový symbol",
         "F je množina koncových stavov"
     )))
     text_area.config(state=tk.DISABLED)
@@ -313,7 +273,7 @@ if __name__=="__main__":
         font = font
     )
     text_area_F.grid(row = 3, column = 0, padx = 10)
-    text_area_F.insert(tk.INSERT, "{f1, f2}")
+    text_area_F.insert(tk.INSERT, "{q2}")
 
     label = Label(text = "Prechodové funkcie", anchor="w", font=font)
     label.grid(row=4, column=0, sticky="w", padx=10, pady=(10,0))
@@ -325,6 +285,12 @@ if __name__=="__main__":
         font = font
     )
     text_area_T.grid(row = 5, column = 0, pady = (0,10), padx = 10)
+    text_area_T.insert(tk.INSERT, "\n".join(("d(q0,0)=(q1)",
+                                             "d(q0,1)=(q0)",
+                                             "d(q1,0)=(q2)",
+                                             "d(q1,1)=(q0)",
+                                             "d(q2,0)=(q2)",
+                                             "d(q2,1)=(q2)")))
 
     label = Label(text = "Priebeh", anchor="w", font=font)
     label.grid(row=0, column=1, sticky="w", padx=10, pady=(10,0))
@@ -357,6 +323,7 @@ if __name__=="__main__":
         font = font
     )
     text_area_I.grid(row = 7, column = 0, pady = (0,10), padx = 10)
+    text_area_I.insert(tk.INSERT, "001011")
 
     bframe = Frame(win)
     bframe.grid(row=8, column=0, columnspan=2, sticky="nsew")

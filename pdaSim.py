@@ -157,6 +157,7 @@ class Automaton:
         try:
             confs = next(self.steps)
             items = {}
+            # TODO: print states to Priebeh text area
             # for conf in confs:
                 # if conf.pcid not in items:
                 #     items[conf.pcid] = []

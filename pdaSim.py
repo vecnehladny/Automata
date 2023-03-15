@@ -4,11 +4,14 @@ import re
 from automata.fa.dfa import DFA
 from automata.base.exceptions import RejectionException
 
+
 def norm(txt):
     return re.sub("[^\S\r\n]", "", txt)
 
+
 def removeNLs(txt):
     return re.sub("[\r\n]", "", txt)
+
 
 class MyDFA(DFA):
 
@@ -27,6 +30,7 @@ class MyDFA(DFA):
 
         if not ignore_rejection:
             self._check_for_input_rejection(current_state)
+
 
 class Automaton:
 
@@ -56,7 +60,7 @@ class Automaton:
         return
 
     def step(self, txtAreaT, txtAreaF, txtAreaI, text_area_C):
-        if(self.canStep == False):
+        if (self.canStep == False):
             return
         if self.steps is None:
             self.initialize(txtAreaT, txtAreaF, txtAreaI)
@@ -68,14 +72,15 @@ class Automaton:
             print(confs)
         except StopIteration:
             print("ACCEPTED!!!")
-            text_area_C.insert(tk.END, ("─"*11 + "\n") + "ACCEPTED!!!")
+            text_area_C.insert(tk.END, ("─" * 11 + "\n") + "ACCEPTED!!!")
             self.canStep = False
         except RejectionException:
             print("REJECTED!!!")
-            text_area_C.insert(tk.END, ("─"*11 + "\n") + "REJECTED!!!")
+            text_area_C.insert(tk.END, ("─" * 11 + "\n") + "REJECTED!!!")
             self.canStep = False
         text_area_C.see(tk.END)
         return
+
 
 class Parser:
 
@@ -116,24 +121,16 @@ class Parser:
         states.update(finalStates)
 
         definition = {
-            'states':states,
-            'input_symbols':inputSymbols,
-            'transitions':transitions,
-            'initial_state':'q0',
-            'final_states':finalStates,
+            'states': states,
+            'input_symbols': inputSymbols,
+            'transitions': transitions,
+            'initial_state': 'q0',
+            'final_states': finalStates,
         }
         return definition
 
-if __name__=="__main__":
-    """
-    asciiTree = AsciiTree((3,20))
-    asciiTree.addLevel({0:((0,("S:q0","V:a","Z:A")),)})
-    asciiTree.addLevel({0:((1, ("S:q0","V:a","Z:A")),(2, ("S:q0","V:a","Z:A")),(3, ("S:q0","V:a","Z:A")))})
-    print(asciiTree.content)
-    import sys
-    sys.exit(0)
-    """
 
+if __name__ == "__main__":
     # Creating tkinter main window
     win = tk.Tk()
     win.title("DFA Sim")
@@ -143,16 +140,16 @@ if __name__=="__main__":
 
     font = ("Consolas", 12)
 
-    label = Label(text = "Definícia", anchor="w", font=font)
-    label.grid(row=0, column=0, sticky="w", padx=10, pady=(10,0))
+    label = Label(text="Definícia", anchor="w", font=font)
+    label.grid(row=0, column=0, sticky="w", padx=10, pady=(10, 0))
     text_area = scrolledtext.ScrolledText(
         win,
-        wrap = tk.WORD,
-        width = 40,
-        height = 9,
-        font = font
+        wrap=tk.WORD,
+        width=40,
+        height=9,
+        font=font
     )
-    text_area.grid(row = 1, column = 0, padx = 10)
+    text_area.grid(row=1, column=0, padx=10)
     text_area.insert(tk.INSERT, "\n".join((
         "M = (K, S, d, q0, F)\n",
         "K je konečná množina stavov",
@@ -163,28 +160,28 @@ if __name__=="__main__":
     )))
     text_area.config(state=tk.DISABLED)
 
-    label = Label(text = "F", anchor="w", font=font)
-    label.grid(row=2, column=0, sticky="w", padx=10, pady=(10,0))
+    label = Label(text="F", anchor="w", font=font)
+    label.grid(row=2, column=0, sticky="w", padx=10, pady=(10, 0))
     text_area_F = scrolledtext.ScrolledText(
         win,
-        wrap = tk.WORD,
-        width = 40,
-        height = 1,
-        font = font
+        wrap=tk.WORD,
+        width=40,
+        height=1,
+        font=font
     )
-    text_area_F.grid(row = 3, column = 0, padx = 10)
+    text_area_F.grid(row=3, column=0, padx=10)
     text_area_F.insert(tk.INSERT, "{q4}")
 
-    label = Label(text = "Prechodové funkcie", anchor="w", font=font)
-    label.grid(row=4, column=0, sticky="w", padx=10, pady=(10,0))
+    label = Label(text="Prechodové funkcie", anchor="w", font=font)
+    label.grid(row=4, column=0, sticky="w", padx=10, pady=(10, 0))
     text_area_T = scrolledtext.ScrolledText(
         win,
-        wrap = tk.WORD,
-        width = 40,
-        height = 10,
-        font = font
+        wrap=tk.WORD,
+        width=40,
+        height=10,
+        font=font
     )
-    text_area_T.grid(row = 5, column = 0, pady=(0, 10), padx=10)
+    text_area_T.grid(row=5, column=0, pady=(0, 10), padx=10)
     text_area_T.insert(tk.INSERT, "\n".join(("d(q0,0)=(q0)",
                                              "d(q0,1)=(q1)",
                                              "d(q1,0)=(q2)",
@@ -196,47 +193,48 @@ if __name__=="__main__":
                                              "d(q4,0)=(q4)",
                                              "d(q4,1)=(q4)")))
 
-    label = Label(text = "Priebeh", anchor="w", font=font)
-    label.grid(row=0, column=1, sticky="w", padx=10, pady=(10,0))
+    label = Label(text="Priebeh", anchor="w", font=font)
+    label.grid(row=0, column=1, sticky="w", padx=10, pady=(10, 0))
 
     cframe = Frame(win)
     vbar = tk.Scrollbar(cframe)
-    vbar.pack (side = tk.RIGHT, fill = "y")
-    hbar = tk.Scrollbar(cframe, orient = tk.HORIZONTAL)
-    hbar.pack (side = tk.BOTTOM, fill = "x")
+    vbar.pack(side=tk.RIGHT, fill="y")
+    hbar = tk.Scrollbar(cframe, orient=tk.HORIZONTAL)
+    hbar.pack(side=tk.BOTTOM, fill="x")
     text_area_C = tk.Text(
         cframe,
-        width = 110,
-        yscrollcommand = vbar.set,
-        xscrollcommand = hbar.set,
-        wrap = "none",
-        font = ("Consolas", 8)
+        width=110,
+        yscrollcommand=vbar.set,
+        xscrollcommand=hbar.set,
+        wrap="none",
+        font=("Consolas", 8)
     )
-    text_area_C.pack(expand = 1, fill = tk.BOTH)
-    hbar.config(command = text_area_C.xview)
-    vbar.config(command = text_area_C.yview)
-    cframe.grid(row = 1, column = 1, rowspan=7, pady = (0,10), padx = 10, sticky="ns")
+    text_area_C.pack(expand=1, fill=tk.BOTH)
+    hbar.config(command=text_area_C.xview)
+    vbar.config(command=text_area_C.yview)
+    cframe.grid(row=1, column=1, rowspan=7, pady=(0, 10), padx=10, sticky="ns")
 
-    label = Label(text = "Vstup", anchor="w", font=font)
+    label = Label(text="Vstup", anchor="w", font=font)
     label.grid(row=6, column=0, sticky="w", padx=10)
     text_area_I = scrolledtext.ScrolledText(
         win,
-        wrap = tk.WORD,
-        height = 2,
-        width = 40,
-        font = font
+        wrap=tk.WORD,
+        height=2,
+        width=40,
+        font=font
     )
-    text_area_I.grid(row = 7, column = 0, pady = (0,10), padx = 10)
+    text_area_I.grid(row=7, column=0, pady=(0, 10), padx=10)
     text_area_I.insert(tk.INSERT, "001011")
 
     bframe = Frame(win)
     bframe.grid(row=8, column=0, columnspan=2, sticky="nsew")
 
-    button1=tk.Button(bframe, text="Stop", command=lambda: automaton.stop(text_area_C))
-    button1.grid(row = 0, column = 0, pady = (0,10), padx = (10,0))
+    button1 = tk.Button(bframe, text="Stop", command=lambda: automaton.stop(text_area_C))
+    button1.grid(row=0, column=0, pady=(0, 10), padx=(10, 0))
 
-    button1=tk.Button(bframe, text="Krok", command=lambda: automaton.step(text_area_T, text_area_F, text_area_I, text_area_C))
-    button1.grid(row = 0, column = 1, pady = (0,10))
+    button1 = tk.Button(bframe, text="Krok",
+                        command=lambda: automaton.step(text_area_T, text_area_F, text_area_I, text_area_C))
+    button1.grid(row=0, column=1, pady=(0, 10))
 
     # Placing cursor in the text area
     text_area_T.focus()

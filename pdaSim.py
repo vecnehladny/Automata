@@ -13,6 +13,16 @@ def removeNLs(txt):
     return re.sub("[\r\n]", "", txt)
 
 
+def parseSpeed(s):
+    try:
+        value = int(s)
+        if value <= 0:
+            value = 1000
+    except ValueError:
+        return 1000;
+    return value
+
+
 class MyDFA(DFA):
 
     def read_input_stepwise(self, input_str, ignore_rejection=False):
@@ -39,6 +49,7 @@ class Automaton:
         self.npda = None
         self.steps = None
         self.canStep = True
+        self.simulating = False
         return
 
     def stop(self, text_area_C=None):
@@ -47,6 +58,7 @@ class Automaton:
         if text_area_C is not None:
             text_area_C.delete('1.0', 'end')
         self.canStep = True
+        self.simulating = False
         return
 
     def initialize(self, txtAreaT, txtAreaF, txtAreaI):
@@ -68,7 +80,8 @@ class Automaton:
             confs = next(self.steps)
             items = {}
             # TODO: print states to Priebeh text area
-            text_area_C.insert(tk.END, confs + "\n")
+            if confs:
+                text_area_C.insert(tk.END, confs + "\n")
             print(confs)
         except StopIteration:
             print("ACCEPTED!!!")
@@ -170,7 +183,7 @@ if __name__ == "__main__":
         font=font
     )
     text_area_F.grid(row=3, column=0, padx=10)
-    text_area_F.insert(tk.INSERT, "{q4}")
+    text_area_F.insert(tk.INSERT, "{q6}")
 
     label = Label(text="Prechodové funkcie", anchor="w", font=font)
     label.grid(row=4, column=0, sticky="w", padx=10, pady=(10, 0))
@@ -182,16 +195,20 @@ if __name__ == "__main__":
         font=font
     )
     text_area_T.grid(row=5, column=0, pady=(0, 10), padx=10)
-    text_area_T.insert(tk.INSERT, "\n".join(("d(q0,0)=(q0)",
-                                             "d(q0,1)=(q1)",
-                                             "d(q1,0)=(q2)",
-                                             "d(q1,1)=(q1)",
-                                             "d(q2,0)=(q0)",
-                                             "d(q2,1)=(q3)",
-                                             "d(q3,0)=(q4)",
-                                             "d(q3,1)=(q1)",
-                                             "d(q4,0)=(q4)",
-                                             "d(q4,1)=(q4)")))
+    text_area_T.insert(tk.INSERT, "\n".join(("d(q0,a)=(q1)",
+                                             "d(q0,b)=(q0)",
+                                             "d(q1,a)=(q2)",
+                                             "d(q1,b)=(q0)",
+                                             "d(q2,a)=(q2)",
+                                             "d(q2,b)=(q3)",
+                                             "d(q3,a)=(q4)",
+                                             "d(q3,b)=(q0)",
+                                             "d(q4,a)=(q2)",
+                                             "d(q4,b)=(q5)",
+                                             "d(q5,a)=(q1)",
+                                             "d(q5,b)=(q6)",
+                                             "d(q6,a)=(q6)",
+                                             "d(q6,b)=(q6)",)))
 
     label = Label(text="Priebeh", anchor="w", font=font)
     label.grid(row=0, column=1, sticky="w", padx=10, pady=(10, 0))
@@ -231,6 +248,20 @@ if __name__ == "__main__":
 
     button1 = tk.Button(bframe, text="Stop", command=lambda: automaton.stop(text_area_C))
     button1.grid(row=0, column=0, pady=(0, 10), padx=(10, 0))
+
+    def __simulate():
+        if automaton.simulating == True and automaton.canStep == True:
+            automaton.step(text_area_T, text_area_F, text_area_I, text_area_C);
+            text_area_C.after(500, __simulate)
+
+
+    def simulate():
+        if automaton.simulating == False:
+            automaton.simulating = True
+            __simulate()
+
+    simButton = tk.Button(bframe, text="Simuluj", command=simulate)
+    simButton.grid(row=0, column=2, pady=(0, 10))
 
     button1 = tk.Button(bframe, text="Krok",
                         command=lambda: automaton.step(text_area_T, text_area_F, text_area_I, text_area_C))

@@ -241,7 +241,7 @@ if __name__ == "__main__":
         font=font
     )
     text_area_I.grid(row=7, column=0, pady=(0, 10), padx=10)
-    text_area_I.insert(tk.INSERT, "001011")
+    text_area_I.insert(tk.INSERT, "babaababaababbababa")
 
     bframe = Frame(win)
     bframe.grid(row=8, column=0, columnspan=2, sticky="nsew")

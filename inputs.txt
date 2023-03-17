@@ -1,0 +1,49 @@
+3.8
+L = { a1010b | a,b € {0,1}* } (slova obsahujuce podretazec 1010)
+d(q0,0)=(q0)
+d(q0,1)=(q1)
+d(q1,0)=(q2)
+d(q1,1)=(q1)
+d(q2,0)=(q0)
+d(q2,1)=(q3)
+d(q3,0)=(q4)
+d(q3,1)=(q1)
+d(q4,0)=(q4)
+d(q4,1)=(q4)
+
+konecny stav: {q4}
+
+ACC - 1010
+ACC - 1010101001
+ACC - 11101100010101110001000
+REJ - 110111
+REJ - 10000000
+REJ - 0
+
+-----------------------------------------------------------------------------
+
+3.10
+L = { xaababby | x,y € {a,b}* } (slova obsahujuce podretazec aababb)
+d(q0,a)=(q1)
+d(q0,b)=(q0)
+d(q1,a)=(q2)
+d(q1,b)=(q0)
+d(q2,a)=(q2)
+d(q2,b)=(q3)
+d(q3,a)=(q4)
+d(q3,b)=(q0)
+d(q4,a)=(q2)
+d(q4,b)=(q5)
+d(q5,a)=(q1)
+d(q5,b)=(q6)
+d(q6,a)=(q6)
+d(q6,b)=(q6)
+
+konecny stav: {q6}
+
+ACC - babaababaababbababa
+ACC - aababb
+ACC - bbbbbaababb
+REJ - babaababababbababa
+REJ - aabab
+REJ - aaaaaaaaabab
